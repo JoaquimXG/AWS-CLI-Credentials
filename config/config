@@ -8,7 +8,7 @@ region = eu-west-2
 output = json
 mfa_serial = arn:aws:iam::XXXXXXXXXXXX:mfa/XXXXXX
 
-[profile cross-account-role-example]
+[profile role-example]
 region = eu-west-2
 output = json
 mfa_serial = arn:aws:iam::XXXXXXXXXXXX:mfa/XXXXXX

@@ -6,7 +6,7 @@
     I believe the format is the follwoing arn:aws:sts::{account_id}:assumed-role/{role_name}/{role_session_name}
     All of this should be static
 .EXAMPLE
-    Get-AwsRoleSession <profile>
+    Get-AwsRoleSession
 .EXAMPLE
     Get-AwsRoleSession -AwsProfile <profile>
 #>
