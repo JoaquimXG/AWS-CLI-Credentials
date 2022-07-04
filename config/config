@@ -1,0 +1,19 @@
+[default]
+region = eu-west-1
+output = json
+mfa_serial = arn:aws:iam::XXXXXXXXXXXX:mfa/XXXXXX
+
+[profile personal]
+region = eu-west-2
+output = json
+mfa_serial = arn:aws:iam::XXXXXXXXXXXX:mfa/XXXXXX
+
+[profile cross-account-role-example]
+region = eu-west-2
+output = json
+mfa_serial = arn:aws:iam::XXXXXXXXXXXX:mfa/XXXXXX
+source_profile = personal
+role_arn = arn:aws:iam::XXXXXXXXXXXX:role/<your-role-name>
+assumed_role_arn = arn:aws:sts::XXXXXXXXXXXX:assumed-role/<your-role-name>/<your-role-session-name>
+role_session_name = <your-role-session-name>
+duration_seconds = 43200
