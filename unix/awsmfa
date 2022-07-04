@@ -1,0 +1,47 @@
+#!/bin/sh
+
+# Usage Exmaple:
+# $> source awstoenv <mfa-code>
+
+awssession() {
+    if [ -z "${AWS_PROFILE+x}" ]; then
+        printf 'AWS_PROFILE not set, please enter profile name: '
+        read profile
+    else
+        profile=$AWS_PROFILE
+    fi
+
+    echo "Using AWS_PROFLIE: $profile"
+
+    if [ -z "${1+x}" ]; then
+        printf "Please pass in MFA Code for $profile: "
+        read mfa_code
+    else
+        mfa_code=$1
+    fi
+
+    mfa_serial=$(aws configure get mfa_serial --profile $profile)
+
+    creds=$(aws sts get-session-token \
+        --serial-number $mfa_serial \
+        --token-code $mfa_code \
+        --profile $profile)
+
+    if [ $? -ne 0 ]; then
+        echo "Retrieving session failed!"
+        return
+    fi
+
+    key_id=$(echo $creds | jq -r .Credentials.AccessKeyId)
+    key=$(echo $creds | jq -r .Credentials.SecretAccessKey)
+    session=$(echo $creds | jq -r .Credentials.SessionToken)
+
+    export AWS_PROFILE=$profile
+    export AWS_ACCESS_KEY_ID=$key_id
+    export AWS_SECRET_ACCESS_KEY=$key
+    export AWS_SESSION_TOKEN=$session
+
+    echo "Started session for ${AWS_PROFILE}"
+}
+
+awssession $1

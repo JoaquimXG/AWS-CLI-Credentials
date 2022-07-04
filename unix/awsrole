@@ -1,0 +1,79 @@
+#!/bin/sh
+
+# Takes cached credentials for a role session and dumps into environment variables
+# Requires adding a config variable to profile in .aws/config file, matching the AssumedRoleArn in cache file
+# Example: arn:aws:sts::XXXXXXXXXXXX:assumed-role/xjg-admin-cross-account-role/admin
+# I believe the format is the follwoing arn:aws:sts::{account_id}:assumed-role/{role_name}/{role_session_name}
+# All of this should be static
+
+# Usage example:
+# $> source awsrole
+
+find_cache_return=""
+profile=""
+findCache() {
+    role_arn=$1
+    retry=$2
+
+    for f in $(find ~/.aws/cli/cache/ -type f); do
+        cache_arn=$(cat $f | jq -r .AssumedRoleUser.Arn)
+        if [ "$role_arn" = "$cache_arn" ]; then
+            find_cache_return=$f
+            return 0
+        fi
+    done
+
+    if [ "$retry" = "true" ]; then
+        aws sts get-caller-identity --profile $profile >/dev/null
+        findCache $role_arn false
+        return $?
+    else
+        return 1
+    fi
+}
+
+cacheToEnv() {
+    if [ -z "${AWS_PROFILE+x}" ]; then
+        printf 'AWS_PROFILE not set, please enter profile name: '
+        read profile
+    else
+        profile=$AWS_PROFILE
+    fi
+
+    echo "Using AWS_PROFLIE: $profile"
+
+    role_arn=$(aws configure get role_arn --profile $profile)
+    if [ -z "$role_arn" ]; then
+        echo "No role found for profile $profile. Does this profile use a role?"
+        return 1
+    fi
+
+    assumed_role_arn=$(aws configure get assumed_role_arn --profile $profile)
+    if [ -z "$assumed_role_arn" ]; then
+        echo "No assumed_role_arn found for profile $profile. Please add an assumed_role_arn to the profile in ~/.aws/config"
+        return 1
+    fi
+
+    findCache $assumed_role_arn true
+    ret=$?
+
+    if [ $ret != 0 ]; then
+        echo "Unable to find cached credentials"
+        return 1
+    fi
+
+    cache_file=$find_cache_return
+
+    key_id=$(cat $cache_file | jq -r .Credentials.AccessKeyId)
+    key=$(cat $cache_file | jq -r .Credentials.SecretAccessKey)
+    session=$(cat $cache_file | jq -r .Credentials.SessionToken)
+
+    export AWS_PROFILE=$profile
+    export AWS_ACCESS_KEY_ID=$key_id
+    export AWS_SECRET_ACCESS_KEY=$key
+    export AWS_SESSION_TOKEN=$session
+
+    echo "Started session for ${AWS_PROFILE} using role $assumed_role_arn"
+}
+
+cacheToEnv $1
