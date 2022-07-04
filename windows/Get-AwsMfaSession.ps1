@@ -5,7 +5,6 @@
     Get-AwsSession <token>
 .EXAMPLE
     Get-AwsMfaSession -MfaToken <token> -AwsProfile <profile>
-   Another example of how to use this cmdlet
 #>
 function Get-AwsMfaSession {
     [CmdletBinding()]
@@ -17,7 +16,7 @@ function Get-AwsMfaSession {
             Position = 0)]
         $MfaToken,
 
-        # MFA Token
+        # AWS Profile
         [Parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true,
             Position = 1)]
