@@ -21,8 +21,6 @@
       - [Get-AwsMfaSession](#get-awsmfasession)
       - [Get-AwsRoleSession](#get-awsrolesession)
 
-AWS Environment variable management is only required for AWS accounts that require MFA or access a role that requires MFA. Accounts without MFA should read **Without MFA** and don't require the scripts. 
-
 ## Overview
 
 The AWS CLI uses a simple credential management system with some complications regarding MFA, roles, or multiple acounts. 
