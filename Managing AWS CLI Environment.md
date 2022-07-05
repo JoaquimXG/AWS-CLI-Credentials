@@ -2,11 +2,12 @@
 
 - [Managing AWS CLI Environment Variables](#managing-aws-cli-environment-variables)
   - [Overview](#overview)
-  - [Without MFA](#without-mfa)
+  - [Key Variables](#key-variables)
+  - [Accounts Without MFA](#accounts-without-mfa)
     - [In Config Files](#in-config-files)
     - [As Environment Variables](#as-environment-variables)
   - [Multiple Accounts/Profiles](#multiple-accountsprofiles)
-  - [With MFA](#with-mfa)
+  - [Accounts With MFA](#accounts-with-mfa)
     - [Manual Setup](#manual-setup)
     - [Automated Setup (Scripted)](#automated-setup-scripted)
   - [Roles](#roles)
@@ -20,13 +21,16 @@
       - [Get-AwsMfaSession](#get-awsmfasession)
       - [Get-AwsRoleSession](#get-awsrolesession)
 
-The following two scripts alongside simple `~/.aws/{config,credentials}` files simplifies managing credentials for AWS CLI. 
-
 AWS Environment variable management is only required for AWS accounts that require MFA or access a role that requires MFA. Accounts without MFA should read **Without MFA** and don't require the scripts. 
 
 ## Overview
 
 The AWS CLI uses a simple credential management system with some complications regarding MFA, roles, or multiple acounts. 
+
+The included scripts for both Windows and Unix, remove these complications allowing for sessions to be started with a single command, e.g., `awsrole`. Some initial setup is required, detailed below. The scripts are not required for accounts without MFA or accounts accessing roles without MFA.
+
+## Key Variables
+
 At its core the system uses the following environment variables. 
 
 | Variable              | Description                                                     |
@@ -38,7 +42,7 @@ At its core the system uses the following environment variables.
 
 These variables can also be set in two files `~/.aws/config` and `~/.aws/credentials` which can be generated interactively using `aws configure` for the simplest configurations as shown below. 
 
-## Without MFA
+## Accounts Without MFA
 
 When using an account that does not require MFA, only your access key ID and secret access key are required. 
 These can either be set in the environment variables or in the `~/.aws/config` and `~/.aws/credentials` files. 
@@ -103,7 +107,7 @@ export AWS_PROFILE=personal
 $Env:AWS_PROFILE = "personal"
 ```
 
-## With MFA
+## Accounts With MFA
 
 Accounts with MFA must use an MFA token to generate temporary credentials to use in place of the static credentials stored in `~/.aws/credentials`.  You will need the unique serial for your MFA device which can be found in the AWS Management Console under the Security Credentials section.
 
@@ -189,6 +193,15 @@ The standard usage above will not add temporary credentials to the environment, 
 
 The included scripts both simplify the process of entering a role session and will bring the temporary credentials from the cache file into the environment.
 
+You must include a non standard parameter `assumed_role_arn` in the profile, this is partially computed using a `role_session_name` so this must also be included. The format for `assumed_role_arn` is below.
+
+```ini
+role_session_name = <your-role-session-name>
+assumed_role_arn = arn:aws:sts::XXXXXXXXXXXX:assumed-role/<your-role-name>/<your-role-session-name>
+```
+
+You can then run the scripts for Unix and Windows:
+
 ```bash
 # Unix
 source awsrole
@@ -209,11 +222,20 @@ Suggested to add both scripts to your path, e.g., `/home/<user>/bin/`
 
 #### awsmfa
 
+`mfa_serial` must be set for the profile in `~/.aws/config` for this script to work.
+
 ```text
 Usage: awsmfa <mfa-token>
 ```
 
 #### awsrole
+
+You must include a non standard parameter `assumed_role_arn` in the profile, this is partially computed using a `role_session_name` so this must also be included. The format for `assumed_role_arn` is below.
+
+```ini
+role_session_name = <your-role-session-name>
+assumed_role_arn = arn:aws:sts::XXXXXXXXXXXX:assumed-role/<your-role-name>/<your-role-session-name>
+```
 
 ```text
 Usage: awsrole
@@ -225,6 +247,8 @@ Suggested to add `Import-Module <script>` for both scripts in `$profile`.
 
 #### Get-AwsMfaSession
 
+`mfa_serial` must be set for the profile in `~/.aws/config` for this script to work.
+
 ```powershell
 Get-AwsMfaSession <mfa-token>
 # Or with profile
@@ -234,6 +258,15 @@ Get-AwsMfaSession -MfaToken <mfa-token> -AwsProfile <profile>
 ```
 
 #### Get-AwsRoleSession
+
+`mfa_serial` and `role_arn` must be set for the profile in `~/.aws/config` for this script to work.
+
+You must include a non standard parameter `assumed_role_arn` in the profile, this is partially computed using a `role_session_name` so this must also be included. The format for `assumed_role_arn` is below.
+
+```ini
+role_session_name = <your-role-session-name>
+assumed_role_arn = arn:aws:sts::XXXXXXXXXXXX:assumed-role/<your-role-name>/<your-role-session-name>
+```
 
 ```powershell
 Get-AwsRoleSession

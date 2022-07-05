@@ -1,15 +1,34 @@
+# Example of a config file with many profiles. Profile names highlight the type of profile used.
+# All profiles below would use one of the two sets of static credentials defined in the credentials file.
 [default]
 region = eu-west-1
 output = json
 mfa_serial = arn:aws:iam::XXXXXXXXXXXX:mfa/XXXXXX
 
-[profile personal]
+[profile without-mfa]
+region = eu-west-2
+output = json
+
+[profile with-mfa]
 region = eu-west-2
 output = json
 mfa_serial = arn:aws:iam::XXXXXXXXXXXX:mfa/XXXXXX
 
-[profile role-example]
+[profile role-without-mfa]
 region = eu-west-2
+output = json
+source_profile = personal
+role_arn = arn:aws:iam::XXXXXXXXXXXX:role/<your-role-name>
+
+[profile role-with-mfa]
+region = eu-west-2
+output = json
+mfa_serial = arn:aws:iam::XXXXXXXXXXXX:mfa/XXXXXX
+source_profile = personal
+role_arn = arn:aws:iam::XXXXXXXXXXXX:role/<your-role-name>
+assumed_role_arn = arn:aws:sts::XXXXXXXXXXXX:assumed-role/<your-role-name>/<your-role-session-name>
+
+[profile roll-with-mfa-and-full-config]
 output = json
 mfa_serial = arn:aws:iam::XXXXXXXXXXXX:mfa/XXXXXX
 source_profile = personal
